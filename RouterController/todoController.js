@@ -256,6 +256,10 @@ const handleDeleteTodo = (req, res) => {
   const handleGetAllTodo = (req, res) => {
     try {
       const tenantId = req.headers.tenant_uuid;
+      const page = req.query.page || 1; 
+      const limit = 10; 
+      const offset = (page - 1) * limit; 
+  
       // Connect to the tenant database
       const dbName = `tenant_${tenantId}`;
       const userDbConfig = {
@@ -271,7 +275,7 @@ const handleDeleteTodo = (req, res) => {
             .send({ error: "error while connecting to the database", error });
         }
   
-        const query = "SELECT * FROM todo";
+        const query = `SELECT * FROM todo LIMIT ${limit} OFFSET ${offset}`;
         connection.query(query, (err, results) => {
           connection.release();
   
@@ -289,6 +293,7 @@ const handleDeleteTodo = (req, res) => {
       res.send("error");
     }
   };
+  
   
 
 
