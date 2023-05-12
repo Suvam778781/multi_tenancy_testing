@@ -21,8 +21,11 @@ app.get("/", (req, res) => {
 });
 
 app.use(cookieParser());
+//clients can register and login from this route /client
 app.use("/client", clientRoute);
+//client can perform CRUD on users from the endpoint below ;
 app.use('/user', usersRoute);
+//admin and user can perform CRUD on todo's below the end point
 app.use("/todo", userTodoRoute);
 
 const server = app.listen(8090, async (err) => {
