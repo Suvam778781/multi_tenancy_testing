@@ -320,46 +320,46 @@ const handleGetAllTodo = (req, res) => {
 };
 
 
-  const handleGetAllTodo = (req, res) => {
-    try {
-      const tenantId = req.headers.tenant_uuid;
-      const page = req.query.page || 1; 
-      const limit = 10; 
-      const offset = (page - 1) * limit; 
+  // const handleGetAllTodo = (req, res) => {
+  //   try {
+  //     const tenantId = req.headers.tenant_uuid;
+  //     const page = req.query.page || 1; 
+  //     const limit = 10; 
+  //     const offset = (page - 1) * limit; 
   
-      // Connect to the tenant database
-      const dbName = `tenant_${tenantId}`;
-      const userDbConfig = {
-        ...dbConfig,
-        database: dbName,
-      };
-      const pool1 = mysql.createPool(userDbConfig);
+  //     // Connect to the tenant database
+  //     const dbName = `tenant_${tenantId}`;
+  //     const userDbConfig = {
+  //       ...dbConfig,
+  //       database: dbName,
+  //     };
+  //     const pool1 = mysql.createPool(userDbConfig);
   
-      pool1.getConnection((error, connection) => {
-        if (error) {
-          return res
-            .status(401)
-            .send({ error: "error while connecting to the database", error });
-        }
+  //     pool1.getConnection((error, connection) => {
+  //       if (error) {
+  //         return res
+  //           .status(401)
+  //           .send({ error: "error while connecting to the database", error });
+  //       }
   
-        const query = `SELECT * FROM todo LIMIT ${limit} OFFSET ${offset}`;
-        connection.query(query, (err, results) => {
-          connection.release();
+  //       const query = `SELECT * FROM todo LIMIT ${limit} OFFSET ${offset}`;
+  //       connection.query(query, (err, results) => {
+  //         connection.release();
   
-          if (err) {
-            return res
-              .status(401)
-              .send({ error: "cannot process request", err });
-          }
+  //         if (err) {
+  //           return res
+  //             .status(401)
+  //             .send({ error: "cannot process request", err });
+  //         }
   
-          res.send(results);
-        });
-      });
-    } catch (error) {
-      console.log(error);
-      res.send("error");
-    }
-  };
+  //         res.send(results);
+  //       });
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //     res.send("error");
+  //   }
+  // };
   
   
 
