@@ -19,81 +19,87 @@ const addUser = async (req, res) => {
       !lastname ||
       lastname.trim().length === 0
     ) {
-      // At least one of the fields is missing or invalid
-
       return res.status(400).json({ error: "Invalid request data" });
     }
     let username = `${firstname} ${lastname}`;
-    // await sendCredentialsEmail(email,username,password)
+
     jwt.verify(token, process.env.secret_key, async (err, result) => {
       if (err) {
         return res.status(401).send({ error: "cannot process req", err });
       } else {
         let hashpassword = await encryptPassword(password);
 
-        const insertUserQuery =
-          "INSERT INTO user_incomming (email, firstname, lastname, password, role, org_id) VALUES (?, ?, ?, ?, ?, ?)";
-        //saving user uuid to a cookie for later use
-        res.cookie("useruuid", result.org_id, {
-          httpOnly: true,
-        });
-
-        console.log(req.cookies.useruuid, "useriiid");
-
-        let uuid = await encryptPassword(result.uuid);
-
-        const insertUserValues = [
-          email,
-          firstname,
-          lastname,
-          hashpassword,
-          0,
-          uuid,
-        ];
-        pool.query(insertUserQuery, insertUserValues, (err, resul) => {
+        // Check if the user already exists
+        const checkUserQuery = "SELECT * FROM user_incomming WHERE email = ?";
+        pool.query(checkUserQuery, [email], async(err, userResult) => {
           if (err) {
-            // pool.release();
             return res.status(401).send({ error: "cannot process req", err });
           }
-          // pool.release();
+          if (userResult.length > 0) {
+            return res.status(409).send({ message: "User already exists" });
+          }
 
-          const dbName = `tenant_${result.uuid}`;
-          const userDbConfig = {
-            ...dbConfig,
-            database: dbName,
-          };
-          const pool1 = mysql.createPool(userDbConfig);
-          pool1.getConnection((error, connection) => {
-            if (error) {
-              return res
-                .status(401)
-                .send({ error: "error while connection to db", error });
+          const insertUserQuery =
+            "INSERT INTO user_incomming (email, firstname, lastname, password, role, org_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+          res.cookie("useruuid", result.org_id, {
+            httpOnly: true,
+          });
+
+          let uuid = await encryptPassword(result.uuid);
+
+          const insertUserValues = [
+            email,
+            firstname,
+            lastname,
+            hashpassword,
+            0,
+            uuid,
+          ];
+          pool.query(insertUserQuery, insertUserValues, (err, resul) => {
+            if (err) {
+              return res.status(401).send({ error: "cannot process req", err });
             }
-            const insertUserQuery =
-              "INSERT INTO user (email, firstname, lastname, password, role, tenant_uuid) VALUES (?, ?, ?, ?, ?, ?)";
-            let uuid = result.uuid;
-            const insertUserValues = [
-              email,
-              firstname,
-              lastname,
-              hashpassword,
-              0,
-              uuid,
-            ];
-            connection.query(
-              insertUserQuery,
-              insertUserValues,
-              (err, result) => {
-                if (err) {
-                  connection.release();
-                  return res
-                    .status(401)
-                    .send({ error: "cannot process req", err });
-                }
-                connection.release();
-                res.send("User added successfully");
+
+            const dbName = `tenant_${result.uuid}`;
+            const userDbConfig = {
+              ...dbConfig,
+              database: dbName,
+            };
+            const pool1 = mysql.createPool(userDbConfig);
+            pool1.getConnection((error, connection) => {
+              if (error) {
+                return res
+                  .status(401)
+                  .send({ error: "error while connection to db", error });
               }
-            );
+
+              const insertUserQuery =
+                "INSERT INTO user (email, firstname, lastname, password, role, tenant_uuid) VALUES (?, ?, ?, ?, ?, ?)";
+              let uuid = result.uuid;
+              const insertUserValues = [
+                email,
+                firstname,
+                lastname,
+                hashpassword,
+                0,
+                uuid,
+              ];
+              connection.query(
+                insertUserQuery,
+                insertUserValues,
+                (err, result) => {
+                  if (err) {
+                    connection.release();
+                    return res
+                      .status(401)
+                      .send({ error: "cannot process req", err });
+                  }
+                  connection.release();
+                  res.send("User added successfully");
+                }
+              );
+            });
           });
         });
       }
@@ -103,6 +109,7 @@ const addUser = async (req, res) => {
     res.send("error");
   }
 };
+
 const getUser = (req, res) => {
   try {
     const { email } = req.query;

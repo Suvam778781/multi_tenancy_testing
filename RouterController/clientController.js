@@ -117,7 +117,10 @@ const handelClientLogin = async (req, res) => {
         bcrypt.compare(password, result[0].password, (err, resul) => {
           if (err) {
             return res.status(500).json({ error: "Login again.", err });
-          } else {
+          } else if(!resul) {
+
+            return res.status(500).json({ error: "Plese enter correct password", err });}
+            else{
             // Generate a JWT token
             let uuid = result[0].tenant_uuid;
 
