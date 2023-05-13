@@ -28,13 +28,14 @@ app.use('/user', usersRoute);
 //admin and user can perform CRUD on todo's below the end point
 app.use("/todo", userTodoRoute);
 
-const server = app.listen(8090, async (err) => {
+const server = app.listen(8080, async (err) => {
   if (err) {
     console.log(err);
   } else {
     try {
-      await connection(); // Connect to the database
-      console.log("Connected to the database");
+      // await connection(); // Connect to the database
+     await connection()
+     
     } catch (error) {
       console.log("Error while connecting to the database:", error);
       server.close();
