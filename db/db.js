@@ -28,12 +28,13 @@ const connection = () => {
         console.log("Error while connecting to the database:", err);
         reject(err);
       } else {
+      
+        resolve(connection);
         console.log(
           "Successfully connected to the database. Connection ID:",
           connection.threadId,
           connection.config.database
         );
-        resolve(connection);
       }
     });
   });
