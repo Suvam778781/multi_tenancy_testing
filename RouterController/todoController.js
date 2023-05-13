@@ -224,7 +224,7 @@ const handleGetTodo = (req, res) => {
       if (err)
         return res.status(401).send({ error: "cannot process req", err });
 
-      const dbName = `tenant_${result.uuid}`;
+      const dbName = `tenant_${result.org_id}`;
       const userDbConfig = {
         ...dbConfig,
         database: dbName,
@@ -516,7 +516,7 @@ const handleUpdateUserTodo = (req, res) => {
         return res.status(401).send({ error: "cannot process req", err });
       }
 
-      const dbName = `tenant_${result.uuid}`;
+      const dbName = `tenant_${result.org_id}`;
       const userDbConfig = {
         ...dbConfig,
         database: dbName,
