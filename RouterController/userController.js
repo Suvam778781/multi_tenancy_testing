@@ -46,7 +46,7 @@ const addUser = async (req, res) => {
             httpOnly: true,
           });
 
-          let uuid = await encryptPassword(result.uuid);
+          
 
           const insertUserValues = [
             email,
@@ -54,7 +54,7 @@ const addUser = async (req, res) => {
             lastname,
             hashpassword,
             0,
-            uuid,
+            result.uuid
           ];
           pool.query(insertUserQuery, insertUserValues, (err, resul) => {
             if (err) {
@@ -177,7 +177,7 @@ const updateUser = (req, res) => {
             .send({ error: "error while connection to db", error });
         }
 
-        console.log("Connected to the database");
+   
 
         const updateUserQuery =
           "UPDATE user SET firstname = ?, lastname = ?, password = ? WHERE id = ?";
@@ -226,7 +226,7 @@ const deleteUser = (req, res) => {
             .send({ error: "error while connection to db", error });
         }
 
-        console.log("Connected to the database");
+    
 
         const deleteUserQuery = "DELETE FROM user WHERE id = ?";
         const deleteUserValues = [userId];
@@ -282,18 +282,9 @@ const userLogin = async (req, res) => {
       }
       // Generate a token using the user ID
 
-      //getting uuid from user cookie;
-
-      const useruuid = req.cookies.useruuid;
-
-      console.log(req.cookies.useruuid, "u");
-
-      const decryptuuid = await decryptPassword(useruuid, user.org_id);
-
-      console.log(decryptuuid, "de");
-
-      const token = jwt.sign({ org_id: decryptuuid }, process.env.secret_key);
-
+  
+      // const decryptuuid = await decryptPassword(useruuid, user.org_id);
+      const token = jwt.sign({ org_id: user.org_id }, process.env.secret_key);
       // Set the token as a cookie using the 'access_token' name
       res.cookie("user_acces_token", token, {
         httpOnly: true,
