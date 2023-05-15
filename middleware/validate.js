@@ -13,8 +13,11 @@ const validate = (req, res, next) => {
     if (result.length > 0) {
       // If the email exists, send an error response
       res.status(300).send({ "error": "Tenant already exists. Please login." });
-    } else {
+    } 
+  
+    else {
       // If the email does not exist, proceed to the next middleware or route handler
+      
       next();
     }
   });

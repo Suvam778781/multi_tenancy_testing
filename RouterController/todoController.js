@@ -142,6 +142,9 @@ const handleUpdateTodo = (req, res) => {
     const token = req.headers.authorization;
     const user_email = req.headers.email;
 
+
+    console.log(title,description,status,"testing")
+
     // Verify the access token
     jwt.verify(token, process.env.secret_key, (err, result) => {
       if (err) {
@@ -215,11 +218,10 @@ const handleGetTodo = (req, res) => {
   try {
     const todoId = req.params.id;
     const token = req.headers.authorization;
-
-    // const user_email = req.cookies.user_email;
     const user_email = req.headers.email;
+    const { page, limit } = req.query;
+    const offset = (page - 1) * limit;
 
-    // Verify the access token
     jwt.verify(token, process.env.secret_key, (err, result) => {
       if (err)
         return res.status(401).send({ error: "cannot process req", err });
@@ -236,7 +238,6 @@ const handleGetTodo = (req, res) => {
             .status(401)
             .send({ error: "error while connecting to db", error });
         } else {
-          // Check if the user exists
           const query = "SELECT * FROM user WHERE email = ?";
           pool1.query(query, [user_email], (error, results) => {
             if (error) {
@@ -248,23 +249,20 @@ const handleGetTodo = (req, res) => {
               return res.send({ message: "User not found" });
             } else {
               const user_id = results[0].id;
-              // Fetch the todo from the tenant's database
+
               const getTodoQuery =
-                "SELECT * FROM todo WHERE user_id = ?";
-              const getTodoValues = [ user_id];
+                "SELECT * FROM todo WHERE user_id = ? LIMIT ? OFFSET ?";
+              const getTodoValues = [user_id, parseInt(limit), parseInt(offset)];
               pool1.query(getTodoQuery, getTodoValues, (err, result) => {
                 if (err) {
-                 
                   return res
                     .status(401)
                     .send({ error: "cannot process req", err });
                 }
-              
                 if (result.length === 0) {
                   return res.send({ message: "Todo not found" });
                 } else {
                   pool1.release();
-
                   res.status(200).send({ result });
                 }
               });
@@ -276,13 +274,13 @@ const handleGetTodo = (req, res) => {
   } catch (error) {
     console.log(error);
     res.send("error");
-  }
+  }
 };
 
 
 
 
-// to get all godo only admin access
+// to get all todo only admin access
 const handleGetAllTodo = (req, res) => {
   try {
     const tenantId = req.headers.tenant_uuid;
@@ -359,8 +357,8 @@ const handelAddUserTodo = (req, res) => {
               const user_id = results[0].id;
               // Create a new todo in the tenant's database
               const createTodoQuery =
-                "INSERT INTO todo (title, description, user_id) VALUES (?, ?, ?)";
-              const createTodoValues = [title, description, user_id];
+                "INSERT INTO todo (title, description,user_id,status) VALUES (?, ?, ?, ?)";
+              const createTodoValues = [title, description, user_id,status];
               pool1.query(createTodoQuery, createTodoValues, (err, result) => {
                 if (err) {
                   pool1.release();

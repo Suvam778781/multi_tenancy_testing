@@ -31,7 +31,7 @@ const server = app.listen(8090, async (err) => {
   } else {
     try {
       await connection(); // Connect to the database
-      console.log("Connected to the database");
+     
     } catch (error) {
       console.log("Error while connecting to the database:", error);
       server.close();
@@ -42,5 +42,5 @@ const server = app.listen(8090, async (err) => {
 // Close the database connection when the server is closed
 server.on("close", () => {
   releaseConnectionPool();
-  console.log("Server closed. Connection pool released.");
+  console.log("Server closed. Connection pool released.")
 });
