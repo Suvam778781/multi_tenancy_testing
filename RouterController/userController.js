@@ -31,7 +31,7 @@ const addUser = async (req, res) => {
 
         // Check if the user already exists
         const checkUserQuery = "SELECT * FROM user_incomming WHERE email = ?";
-        pool.query(checkUserQuery, [email], async(err, userResult) => {
+        pool.query(checkUserQuery, [email], async (err, userResult) => {
           if (err) {
             return res.status(401).send({ error: "cannot process req", err });
           }
@@ -46,15 +46,13 @@ const addUser = async (req, res) => {
             httpOnly: true,
           });
 
-          
-
           const insertUserValues = [
             email,
             firstname,
             lastname,
             hashpassword,
             0,
-            result.uuid
+            result.uuid,
           ];
           pool.query(insertUserQuery, insertUserValues, (err, resul) => {
             if (err) {
@@ -159,7 +157,7 @@ const updateUser = (req, res) => {
     const token = req.headers.authorization;
     const user_email = req.headers.email;
 
-    jwt.verify(token, process.env.secret_key, async(err, result) => {
+    jwt.verify(token, process.env.secret_key, async (err, result) => {
       if (err)
         return res.status(401).send({ error: "cannot process req", err });
 
@@ -170,14 +168,14 @@ const updateUser = (req, res) => {
       };
       const pool1 = mysql.createPool(userDbConfig);
 
-      pool1.getConnection(async(error, connection) => {
+      pool1.getConnection(async (error, connection) => {
         if (error) {
           return res
             .status(401)
             .send({ error: "error while connection to db", error });
         }
 
-   let hashpassword=await encryptPassword(password)
+        let hashpassword = await encryptPassword(password);
 
         const updateUserQuery =
           "UPDATE user SET firstname = ?, lastname = ?, password = ? WHERE id = ?";
@@ -225,8 +223,6 @@ const deleteUser = (req, res) => {
             .status(401)
             .send({ error: "error while connection to db", error });
         }
-
-    
 
         const deleteUserQuery = "DELETE FROM user WHERE id = ?";
         const deleteUserValues = [userId];
@@ -282,7 +278,6 @@ const userLogin = async (req, res) => {
       }
       // Generate a token using the user ID
 
-  
       // const decryptuuid = await decryptPassword(useruuid, user.org_id);
       const token = jwt.sign({ org_id: user.org_id }, process.env.secret_key);
       // Set the token as a cookie using the 'access_token' name
@@ -297,14 +292,12 @@ const userLogin = async (req, res) => {
       });
 
       // Return a success response
-      res
-        .status(200)
-        .json({
-          message: "Login successful",
-          token,
-          email: email,
-          role: "user",
-        });
+      res.status(200).json({
+        message: "Login successful",
+        token,
+        email: email,
+        role: "user",
+      });
     });
   } catch (error) {
     console.error("Error in user login:", error);
@@ -351,6 +344,67 @@ const handleGetAllUser = (req, res) => {
   }
 };
 
+const handelAssignToColuge = (req, res) => {
+  try {
+    //find the email of the coluge by his email address in user table;
+    const { email } = req.body;
+    const  id  = req.params.id;
+    //decode the token and extract the db name;
+    const token = req.headers.authorization;
+    console.log(token);
+    if (!token)
+      return res.status(401).send({ error: "cannot process req !token" });
+    const tenantId = jwt.verify(token, process.env.secret_key);
+
+    //  console.log(tenantId.org_id);
+    const dbName = `tenant_${tenantId.org_id}`;
+
+    const userDbConfig = {
+      ...dbConfig,
+      database: dbName,
+    };
+
+    const pool1 = mysql.createPool(userDbConfig);
+    pool1.getConnection((err, connection) => {
+      if (err)
+        return res.status(500).send({ error: "cannot connect to server", err });
+
+      //after connecting to database we need to find that the email id is present or not in db;
+
+      const q = "SELECT email, id FROM user WHERE email = ? AND role = 0 ";
+
+      connection.query(q, [email], (err, result) => {
+        if (err)
+          return res
+            .status(401)
+            .send({ error: "error while connecting to db", err });
+        console.log(result);
+        //after finding out the user with specific email we can retrive it's id;
+
+        //updating the assigby_col_id; 
+        const q2="UPDATE todo SET assignby_col_id = ? WHERE id = ? "
+        console.log(result[0].id,"iddd",id);
+
+        connection.query(q2,[result[0].id,id],(err,result)=>{
+          if(err)return res.status(401).send({"error":"cannot process req",err})
+          // console.log(result)
+          res.send('ok')
+        })
+        
+
+        //now we have to update the todo table
+        const q = "UPDATE todo SET user_id = ?, assign_col_id = ? WHERE id = ?";
+
+        //connection.query(q,[])
+
+        // res.send("ok");
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "cannot process request", error });
+  }
+};
 
 module.exports = {
   addUser,
@@ -359,4 +413,5 @@ module.exports = {
   getUser,
   userLogin,
   handleGetAllUser,
+  handelAssignToColuge,
 };

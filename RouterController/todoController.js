@@ -357,8 +357,8 @@ const handelAddUserTodo = (req, res) => {
               const user_id = results[0].id;
               // Create a new todo in the tenant's database
               const createTodoQuery =
-                "INSERT INTO todo (title, description,user_id,status) VALUES (?, ?, ?, ?)";
-              const createTodoValues = [title, description, user_id,status];
+                "INSERT INTO todo (title, description,user_id,status,assignby_col_id) VALUES (?, ?, ?, ?, ?)";
+              const createTodoValues = [title, description, user_id,status||0,0];
               pool1.query(createTodoQuery, createTodoValues, (err, result) => {
                 if (err) {
                   pool1.release();

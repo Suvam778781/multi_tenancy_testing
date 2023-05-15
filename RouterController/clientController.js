@@ -257,7 +257,8 @@ const createTodoTableIfNotExists = (pool1) => {
         description VARCHAR(255),
         status TINYINT(1) NOT NULL DEFAULT 0,
         user_id INT(55),
-        assignby_admin TINYINT(1) DEFAULT 0
+        assignby_admin TINYINT(1) DEFAULT 0,
+        assignby_col_id INT(55) DEFAULT 0
       )`;
 
     // Check if the table exists
