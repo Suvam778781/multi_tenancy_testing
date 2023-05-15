@@ -8,6 +8,7 @@ const handelAddTodo = (req, res) => {
     const token = req.headers.authorization;
     const user_email = req.headers.email;
     console.log(user_email);
+
     // Verify the access token
     jwt.verify(token, process.env.secret_key, (err, result) => {
       if (err)
@@ -213,7 +214,6 @@ const handleUpdateTodo = (req, res) => {
 
 
 // To get all todo from a perticular user
-
 const handleGetTodo = (req, res) => {
   try {
     const todoId = req.params.id;

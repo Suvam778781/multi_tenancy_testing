@@ -159,7 +159,7 @@ const updateUser = (req, res) => {
     const token = req.headers.authorization;
     const user_email = req.headers.email;
 
-    jwt.verify(token, process.env.secret_key, (err, result) => {
+    jwt.verify(token, process.env.secret_key, async(err, result) => {
       if (err)
         return res.status(401).send({ error: "cannot process req", err });
 
@@ -170,18 +170,18 @@ const updateUser = (req, res) => {
       };
       const pool1 = mysql.createPool(userDbConfig);
 
-      pool1.getConnection((error, connection) => {
+      pool1.getConnection(async(error, connection) => {
         if (error) {
           return res
             .status(401)
             .send({ error: "error while connection to db", error });
         }
 
-   
+   let hashpassword=await encryptPassword(password)
 
         const updateUserQuery =
           "UPDATE user SET firstname = ?, lastname = ?, password = ? WHERE id = ?";
-        const updateUserValues = [firstname, lastname, password, userId];
+        const updateUserValues = [firstname, lastname, hashpassword, userId];
 
         connection.query(updateUserQuery, updateUserValues, (err, result) => {
           connection.release();

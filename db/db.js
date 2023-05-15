@@ -10,10 +10,10 @@ require("dotenv").config()
 
 
 const dbConfig = {
-  host: "localhost",
-  user: "root",
-  password: "root", 
-  database:"common_db",
+  host: process.env.host,
+  user: process.env.database_user,
+  password: process.env.database_password, 
+  database: process.env.database_name,
   connectionLimit: 100,
 }
 
