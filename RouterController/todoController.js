@@ -266,7 +266,7 @@ const handleGetTodo = (req, res) => {
                   return res.send([]);
                 } else {
                   pool1.release();
-                  res.status(200).send({ result });
+                  res.status(200).send( result );
                 }
               });
             }
