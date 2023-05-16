@@ -1,12 +1,12 @@
 const mysql=require("mysql")
 require("dotenv").config()
-// const dbConfig = {
-//   host:"localhost",
-//   user: "root",
-//   password: "root", 
-//   database:"common_db",
-//   connectionLimit: 100,
-// }
+const dbConfig = {
+  host:"localhost",
+  user: "root",
+  password: "root", 
+  database:"common_db",
+  connectionLimit: 100,
+}
 
 
 

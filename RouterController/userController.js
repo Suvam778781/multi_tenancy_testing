@@ -363,13 +363,20 @@ const handelAssignToColuge = async (req, res) => {
     };
     const pool1 = mysql.createPool(userDbConfig);
     const connection = await util.promisify(pool1.getConnection).call(pool1);
+    //checking if entered email is present or not;
     const [result1] = await util.promisify(connection.query).call(connection, "SELECT email, id FROM user WHERE email = ? AND role = 0", [email]);
     if (result1.length === 0)
       return res.status(401).send({ error: "User not found" });
 
       console.log(result1,"result111");
+//checking if the specific todo belongs to a the particualr user or not;
 
-    await util.promisify(connection.query).call(connection, "UPDATE todo SET user_id = ?, assignby_user_email = ? WHERE id = ?", [result1.id, assignee_email, id]);
+await util.promisify(connection.query).call(connection, "select * from todo where  ")
+
+//updateing user_id of the given user
+
+
+    await util.promisify(connection.query).call(connection, "UPDATE todo SET user_id = ?, assignby_user_email = ? WHERE id = ?  ", [result1.id, assignee_email, id]);
     connection.release();
     res.status(200).send({ success: `Assigned task to ${result1.email}` });
   } catch (error) {

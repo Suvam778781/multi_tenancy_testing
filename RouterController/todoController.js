@@ -219,8 +219,11 @@ const handleGetTodo = (req, res) => {
     const todoId = req.params.id;
     const token = req.headers.authorization;
     const user_email = req.headers.email;
-    const { page, limit } = req.query;
+   const page=req.query.page||1
+   const limit=req.query.limit||10
     const offset = (page - 1) * limit;
+
+    console.log(offset,"offset",page,limit);
 
     jwt.verify(token, process.env.secret_key, (err, result) => {
       if (err)
@@ -357,7 +360,7 @@ const handelAddUserTodo = (req, res) => {
               const user_id = results[0].id;
               // Create a new todo in the tenant's database
               const createTodoQuery =
-                "INSERT INTO todo (title, description,user_id,status,assignby_col_id) VALUES (?, ?, ?, ?, ?)";
+                "INSERT INTO todo (title, description,user_id,status) VALUES (?, ?, ?, ?)";
               const createTodoValues = [title, description, user_id,status||0,0];
               pool1.query(createTodoQuery, createTodoValues, (err, result) => {
                 if (err) {
