@@ -4,6 +4,8 @@ const mysql = require("mysql");
 const { encryptPassword } = require("../middleware/password.encrypt");
 const { decryptPassword } = require("../middleware/password.decrypt");
 const { sendCredentialsEmail } = require("../middleware/email&pass.sender");
+const util = require('util');
+
 
 const addUser = async (req, res) => {
   try {
@@ -308,6 +310,7 @@ const userLogin = async (req, res) => {
 const handleGetAllUser = (req, res) => {
   try {
     const tenantId = req.headers.tenant_uuid;
+ 
     // Connect to the tenant database
     const dbName = `tenant_${tenantId}`;
     const userDbConfig = {
@@ -344,67 +347,37 @@ const handleGetAllUser = (req, res) => {
   }
 };
 
-const handelAssignToColuge = (req, res) => {
+const handelAssignToColuge = async (req, res) => {
   try {
-    //find the email of the coluge by his email address in user table;
     const { email } = req.body;
-    const  id  = req.params.id;
-    //decode the token and extract the db name;
+    const id = req.params.id;
+    const assignee_email = req.headers.email;
     const token = req.headers.authorization;
-    console.log(token);
     if (!token)
-      return res.status(401).send({ error: "cannot process req !token" });
+      return res.status(401).send({ error: "Cannot process request without token" });
     const tenantId = jwt.verify(token, process.env.secret_key);
-
-    //  console.log(tenantId.org_id);
     const dbName = `tenant_${tenantId.org_id}`;
-
     const userDbConfig = {
       ...dbConfig,
       database: dbName,
     };
-
     const pool1 = mysql.createPool(userDbConfig);
-    pool1.getConnection((err, connection) => {
-      if (err)
-        return res.status(500).send({ error: "cannot connect to server", err });
+    const connection = await util.promisify(pool1.getConnection).call(pool1);
+    const [result1] = await util.promisify(connection.query).call(connection, "SELECT email, id FROM user WHERE email = ? AND role = 0", [email]);
+    if (result1.length === 0)
+      return res.status(401).send({ error: "User not found" });
 
-      //after connecting to database we need to find that the email id is present or not in db;
+      console.log(result1,"result111");
 
-      const q = "SELECT email, id FROM user WHERE email = ? AND role = 0 ";
-
-      connection.query(q, [email], (err, result) => {
-        if (err)
-          return res
-            .status(401)
-            .send({ error: "error while connecting to db", err });
-        console.log(result);
-        //after finding out the user with specific email we can retrive it's id;
-
-        //updating the assigby_col_id; 
-        const q2="UPDATE todo SET assignby_col_id = ? WHERE id = ? "
-        console.log(result[0].id,"iddd",id);
-
-        connection.query(q2,[result[0].id,id],(err,result)=>{
-          if(err)return res.status(401).send({"error":"cannot process req",err})
-          // console.log(result)
-          res.send('ok')
-        })
-        
-
-        //now we have to update the todo table
-        const q = "UPDATE todo SET user_id = ?, assign_col_id = ? WHERE id = ?";
-
-        //connection.query(q,[])
-
-        // res.send("ok");
-      });
-    });
+    await util.promisify(connection.query).call(connection, "UPDATE todo SET user_id = ?, assignby_user_email = ? WHERE id = ?", [result1.id, assignee_email, id]);
+    connection.release();
+    res.status(200).send({ success: `Assigned task to ${result1.email}` });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ error: "cannot process request", error });
+    res.status(500).send({ error: "Cannot process request", error });
   }
 };
+
 
 module.exports = {
   addUser,

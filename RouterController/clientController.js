@@ -54,6 +54,10 @@ const handelClientRegister = async (req, res) => {
               .send({ error: `Cannot process request: ${err}` });
           }
 
+          
+
+
+
           const userDbConfig = {
             ...dbConfig,
             database: `tenant_${tenant_uuid}`,
@@ -175,8 +179,6 @@ const handelClientLogin = async (req, res) => {
 
 const handelClientAssignTodo = (req, res) => {
   try {
-    
-
     const specific_user_email = req.headers.specific_user_email;
     const token = req.headers.authorization;
 
@@ -218,26 +220,27 @@ const handelClientAssignTodo = (req, res) => {
           } else {
             //now we have got the user with specific email add and the user id;
             //now we have to create a todo with the specific information and insert it to todo table;
-           const { title, description,status } = req.body;
+            const { title, description, status } = req.body;
             // console.log(response[0])
-          
 
-            const insert_q='INSERT INTO todo (title, description,status,assignby_admin,user_id) VALUES(?,?,?,?,?)';
+            const insert_q =
+              "INSERT INTO todo (title, description,status,assignby_admin,user_id) VALUES(?,?,?,?,?)";
 
-            connection.query(insert_q,[title,description,status||0,1,response[0].id],(err,result)=>{
-              if(err){
-                connection.release()
-                res.status(401).send({"error":"cannot process req",err})
+            connection.query(
+              insert_q,
+              [title, description, status || 0, 1, response[0].id],
+              (err, result) => {
+                if (err) {
+                  connection.release();
+                  res.status(401).send({ error: "cannot process req", err });
+                } else {
+                  connection.release();
+                  res
+                    .status(200)
+                    .send({ succ: `task assigned to ${specific_user_email}` });
+                }
               }
-              else{
-                
-                connection.release()
-                res.status(200).send({"succ":`task assigned to ${specific_user_email}`})
-              }
-            })
-
-
-          
+            );
           }
         });
       }
@@ -258,7 +261,7 @@ const createTodoTableIfNotExists = (pool1) => {
         status TINYINT(1) NOT NULL DEFAULT 0,
         user_id INT(55),
         assignby_admin TINYINT(1) DEFAULT 0,
-        assignby_col_id INT(55) DEFAULT 0
+        assignby_user_email VARCHAR(55) 
       )`;
 
     // Check if the table exists
