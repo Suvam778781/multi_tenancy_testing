@@ -263,7 +263,7 @@ const handleGetTodo = (req, res) => {
                     .send({ error: "cannot process req", err });
                 }
                 if (result.length === 0) {
-                  return res.send({ message: "Todo not found" });
+                  return res.send([]);
                 } else {
                   pool1.release();
                   res.status(200).send({ result });

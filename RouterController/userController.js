@@ -351,6 +351,7 @@ const handelAssignToColuge = async (req, res) => {
   try {
     const { email } = req.body;
     const id = req.params.id;
+    
     const assignee_email = req.headers.email;
     const token = req.headers.authorization;
     if (!token)
@@ -363,6 +364,9 @@ const handelAssignToColuge = async (req, res) => {
     };
     const pool1 = mysql.createPool(userDbConfig);
     const connection = await util.promisify(pool1.getConnection).call(pool1);
+    //cehcking if req.query is vlaid or not;
+
+    //await util.promisify(connection.query).call(connection, "")
     //checking if entered email is present or not;
     const [result1] = await util.promisify(connection.query).call(connection, "SELECT email, id FROM user WHERE email = ? AND role = 0", [email]);
     if (result1.length === 0)
@@ -372,7 +376,7 @@ const handelAssignToColuge = async (req, res) => {
 //checking if the specific todo belongs to a the particualr user or not;
 
 // await util.promisify(connection.query).call(connection, "select * from todo where  ")
-
+7
 //updateing user_id of the given user
 
 
