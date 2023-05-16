@@ -371,7 +371,7 @@ const handelAssignToColuge = async (req, res) => {
       console.log(result1,"result111");
 //checking if the specific todo belongs to a the particualr user or not;
 
-await util.promisify(connection.query).call(connection, "select * from todo where  ")
+// await util.promisify(connection.query).call(connection, "select * from todo where  ")
 
 //updateing user_id of the given user
 
