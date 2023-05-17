@@ -411,8 +411,8 @@ const createTodoTableIfNotExists = (pool1) => {
       user_id INT(55),
       assignby_admin TINYINT(1) DEFAULT 0,
       assignby_user_email VARCHAR(20),
-      time_at_created DATETIME(6) DEFAULT CURRENT_TIMESTAMP(4),
-      deadline_time DATETIME(6) DEFAULT NULL
+      time_at_created DATETIME  DEFAULT CURRENT_TIMESTAMP,
+      deadline_time VARCHAR(25) NULL
     )`;
 
     // Check if the table exists
