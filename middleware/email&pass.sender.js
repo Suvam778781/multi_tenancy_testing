@@ -1,30 +1,31 @@
-const sgMail = require('@sendgrid/mail');
+("use strict");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
-// Set your SendGrid API key
-sgMail.setApiKey('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');
+const sendEmail = async (email, password) => {
+  const transpoter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "manish63singh@gmail.com",
+      pass: process.env.mailpassword,
+    },
+  });
 
-const sendCredentialsEmail = async (email, username, password) => {
-  try {
-    const msg = {
-      to: "suvamswagatamp@gmail.com",
-      from: 'suvampandar@gmail.com', // Replace with your own email address
-      subject: 'Credentials for Login',
-      text: `Hello ${username},\n\nYour login credentials are as follows:\n\nEmail: ${email}\nPassword: ${password}\n\nPlease use these credentials to log in.\n\nBest regards,\nYour Application`,
-    };
+  const mailoption = {
+    from: "manish63singh@gmail.com",
+    to: email,
+    subject: "credentials for logging in  TODO_APP",
+    text: `credential for username ${email} on todo app with password as ${password}` 
+  }; 
 
-    await sgMail.send(msg);
-    console.log('Email sent successfully');
-  } catch (error) {
-    console.error('Error occurred while sending email:', error);
-  }
+ 
+
+ await transpoter.sendMail(mailoption, (err, info) => {
+    if (err) return console.log("error", err);
+    return "mail send", info.response;
+  });
 };
 
-
-
-module.exports = { sendCredentialsEmail };
-
-
-
-
-
-//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
+module.exports = {
+  sendEmail,
+};

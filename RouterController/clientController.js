@@ -8,8 +8,145 @@ const cookieParser = require("cookie-parser");
 const { encryptPassword } = require("../middleware/password.encrypt");
 // Register handeler function;
 
+// const handelClientRegister = async (req, res) => {
+//   try {
+//     const dateTime = getCurrentDateTime();
+
+//     const { email, password, firstname, lastname } = req.body;
+//     if (
+//       !email ||
+//       !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) ||
+//       !password ||
+//       password.length < 6 ||
+//       !firstname ||
+//       firstname.trim().length === 0 ||
+//       !lastname ||
+//       lastname.trim().length === 0
+//     ) {
+//       // At least one of the fields is missing or invalid
+//       return res.status(400).json({ error: "Invalid request data" });
+//     }
+
+//     const time_stamp = Date.now(); // Get current timestamp
+//     const random_no = Math.random().toString(36).substring(2, 8);
+//     // creating a random database name for client;
+//     const tenant_uuid = `${time_stamp}_${random_no}`;
+//     console.log(tenant_uuid);
+
+//     let hashedPassword = await encryptPassword(password);
+//     const registrationQuery =
+//       "INSERT INTO registration (`email`, `password`, `tenant_uuid`) VALUES (?, ?, ?)";
+//     const registrationValues = [email, hashedPassword, tenant_uuid];
+
+//     pool.query(
+//       registrationQuery,
+//       registrationValues,
+//       async (err, registrationResult) => {
+//         if (err) {
+//           return res
+//             .status(500)
+//             .send({ error: `Cannot process request: ${err}` });
+//         }
+
+//         // Creating the database
+//         const createDbQuery = `CREATE DATABASE tenant_${tenant_uuid}`;
+
+//         pool.query(createDbQuery, async (err, createDbResult) => {
+//           if (err) {
+//             return res
+//               .status(500)
+//               .send({ error: `Cannot process request: ${err}` });
+//           }
+
+//           const userDbConfig = {
+//             ...dbConfig,
+//             database: `tenant_${tenant_uuid}`,
+//           };
+//           const pool1 = mysql.createPool(userDbConfig);
+
+//           pool1.getConnection(async (error, connection) => {
+//             if (error) {
+//               console.log(error);
+//               return res
+//                 .status(300)
+//                 .send({ error: `Cannot process request: ${error}` });
+//             }
+//             try {
+//               await createUserTableIfNotExists(pool1);
+//               await createTodoTableIfNotExists(pool1);
+//             } catch (error) {
+//               console.log(error);
+//               return res
+//                 .status(401)
+//                 .send({ error: "error while creating the table", err });
+//             } // Check and create 'user' table if not exists
+
+//             // Hash the password
+//             bcrypt.hash(
+//               password,
+//               Number(process.env.saltround),
+//               (err, hashedPassword) => {
+//                 if (err) {
+//                   console.error("Error hashing password:", err);
+//                   return res
+//                     .status(500)
+//                     .send({ error: "Error hashing password" });
+//                 }
+
+//                 const userQuery =
+//                   "INSERT INTO user (`email`, `firstname`, `lastname`, `password`, `tenant_uuid`) VALUES (?, ?, ?, ?, ?)";
+//                 const userValues = [
+//                   email,
+//                   firstname,
+//                   lastname,
+//                   hashedPassword,
+//                   tenant_uuid,
+//                 ];
+//                 pool1.query(userQuery, userValues, (err, userResult) => {
+//                   if (userResult) {
+//                     const todo_query = `INSERT INTO tod0 where time_at_created=? ,deadline=?`;
+//                     pool1.query(
+//                       todo_query,
+//                       [dateTime.current, dateTime.future],
+//                       (err, result) => {
+//                         if (err)
+//                           return res
+//                             .status(200)
+//                             .send({ error: "error while inserting", err });
+//                         console.log("success");
+//                       }
+//                     );
+//                     return res.status(200).send({
+//                       result: `Inserted data into tenant_${tenant_uuid} successfully`,
+//                     });
+//                   } else {
+//                     res.status(500).send({
+//                       result: `Error while inserting data into db tenant_${tenant_uuid}`,
+//                       err,
+//                     });
+//                   }
+//                 });
+//               }
+//             );
+
+//             connection.release();
+//             // Release the connection
+//           });
+//         });
+//       }
+//     );
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({ error: "Cannot process request", error });
+//   }
+// };
+
+//new
+
 const handelClientRegister = async (req, res) => {
   try {
+    const dateTime = getCurrentDateTime();
+
     const { email, password, firstname, lastname } = req.body;
     if (
       !email ||
@@ -24,10 +161,12 @@ const handelClientRegister = async (req, res) => {
       // At least one of the fields is missing or invalid
       return res.status(400).json({ error: "Invalid request data" });
     }
+
     const time_stamp = Date.now(); // Get current timestamp
     const random_no = Math.random().toString(36).substring(2, 8);
     // creating a random database name for client;
     const tenant_uuid = `${time_stamp}_${random_no}`;
+    console.log(tenant_uuid);
 
     let hashedPassword = await encryptPassword(password);
     const registrationQuery =
@@ -39,6 +178,7 @@ const handelClientRegister = async (req, res) => {
       registrationValues,
       async (err, registrationResult) => {
         if (err) {
+          console.error("Error while inserting into registration table:", err);
           return res
             .status(500)
             .send({ error: `Cannot process request: ${err}` });
@@ -49,14 +189,11 @@ const handelClientRegister = async (req, res) => {
 
         pool.query(createDbQuery, async (err, createDbResult) => {
           if (err) {
+            console.error("Error creating database:", err);
             return res
               .status(500)
               .send({ error: `Cannot process request: ${err}` });
           }
-
-          
-
-
 
           const userDbConfig = {
             ...dbConfig,
@@ -66,13 +203,23 @@ const handelClientRegister = async (req, res) => {
 
           pool1.getConnection(async (error, connection) => {
             if (error) {
-              console.log(error);
+              console.error(
+                "Error getting connection to user database:",
+                error
+              );
               return res
-                .status(300)
+                .status(500)
                 .send({ error: `Cannot process request: ${error}` });
             }
-            let user = await createUserTableIfNotExists(pool1); // Check and create 'user' table if not exists
-            let todo = await createTodoTableIfNotExists(pool1);
+            try {
+              await createUserTableIfNotExists(pool1);
+              await createTodoTableIfNotExists(pool1);
+            } catch (error) {
+              console.error("Error creating tables:", error);
+              return res
+                .status(500)
+                .send({ error: "Error while creating the table", err: error });
+            } // Check and create 'user' table if not exists
 
             // Hash the password
             bcrypt.hash(
@@ -96,19 +243,20 @@ const handelClientRegister = async (req, res) => {
                   tenant_uuid,
                 ];
                 pool1.query(userQuery, userValues, (err, userResult) => {
-                  if (userResult) {
-                    return res.status(200).send({
-                      result: `Inserted data into tenant_${tenant_uuid} successfully`,
-                    });
-                  } else {
-                    res.status(500).send({
-                      result: `Error while inserting data into db tenant_${tenant_uuid}`,
-                      err,
+                  if (err) {
+                    console.error("Error inserting into user table:", err);
+                    return res.status(500).send({
+                      error: `Error whileinserting data into user table`,
+                      err: err,
                     });
                   }
+                  return res.status(200).send({
+                    result: `Inserted data into tenant_${tenant_uuid} successfully`,
+                  });
                 });
               }
             );
+
             connection.release();
             // Release the connection
           });
@@ -128,7 +276,7 @@ const handelClientLogin = async (req, res) => {
     const { email, password } = req.body;
 
     // Authenticate user and retrieve user's database information
-    const isEmailPresentQ = "SELECT * FROM registration WHERE email=?";
+    const isEmailPresentQ = "SELECT * FROM registration WHERE email = ? ";
     const value = [email];
     pool.query(isEmailPresentQ, value, (err, result) => {
       if (err) {
@@ -169,9 +317,10 @@ const handelClientLogin = async (req, res) => {
     });
   } catch (err) {
     // Handle authentication errors
-    res.status(500).send({ error: "Internal server error", err });
-
     console.log(err);
+    return res.status(500).send({ error: "Internal server error", err });
+
+   
   }
 };
 
@@ -237,7 +386,7 @@ const handelClientAssignTodo = (req, res) => {
                   connection.release();
                   res
                     .status(200)
-                    .send({ succ: `task assigned to ${specific_user_email}` });
+                    .send({ message: `task assigned to ${specific_user_email}` });
                 }
               }
             );
@@ -254,15 +403,17 @@ const handelClientAssignTodo = (req, res) => {
 const createTodoTableIfNotExists = (pool1) => {
   return new Promise((resolve, reject) => {
     const createTableQuery = `
-      CREATE TABLE IF NOT EXISTS todo (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255),
-        description VARCHAR(255),
-        status TINYINT(1) NOT NULL DEFAULT 0,
-        user_id INT(55),
-        assignby_admin TINYINT(1) DEFAULT 0,
-        assignby_user_email VARCHAR(55) 
-      )`;
+    CREATE TABLE IF NOT EXISTS todo (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(55),
+      description VARCHAR(155),
+      status TINYINT(1) NOT NULL DEFAULT 0,
+      user_id INT(55),
+      assignby_admin TINYINT(1) DEFAULT 0,
+      assignby_user_email VARCHAR(20),
+      time_at_created DATETIME(6) DEFAULT CURRENT_TIMESTAMP(4),
+      deadline_time DATETIME(6) DEFAULT 0
+    )`;
 
     // Check if the table exists
     pool1.query(`SHOW TABLES LIKE 'todo'`, (error, results) => {
@@ -331,6 +482,30 @@ const createUserTableIfNotExists = (pool1) => {
     });
   });
 };
+function getCurrentDateTime() {
+  const currentDateTime = new Date(); // Get the current date and time
+
+  const futureDateTime = new Date(
+    currentDateTime.getTime() + 24 * 60 * 60 * 1000
+  ); // Add 24 hours (24 * 60 * 60 * 1000 milliseconds) to the current date and time
+
+  const options = {
+    hour12: false, // Use 24-hour format
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+
+  const currentFormatted = currentDateTime.toLocaleString(options);
+  const futureFormatted = futureDateTime.toLocaleString(options);
+
+  return {
+    current: currentFormatted,
+    future: futureFormatted,
+  };
+}
 
 module.exports = {
   handelClientLogin,

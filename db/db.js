@@ -5,7 +5,7 @@ const dbConfig = {
   user: "root",
   password: "root", 
   database:"common_db",
-  connectionLimit: 100,
+  connectionLimit: 5,
 }
 
 
