@@ -312,12 +312,12 @@ const handleGetAllTodo = (req, res) => {
   }
 };
 
-const handelAddUserTodo = (req, res) => {
+const handelAddUserTodo = async(req, res) => {
   try {
     const { title, description, status, timelimit } = req.body;
     const token = req.headers.authorization;
     const user_email = req.headers.email;
-    const nextday_limit=getCurrentDateTime()
+    const nextday_limit=await getCurrentDateTime()
   
     // Verify the access token
     jwt.verify(token, process.env.secret_key, (err, result) => {
@@ -541,7 +541,7 @@ const handleUpdateUserTodo = (req, res) => {
 };
 
 
-function getCurrentDateTime() {
+async function getCurrentDateTime() {
   const currentDateTime = new Date(); // Get the current date and time
 
   const futureDateTime = new Date(
