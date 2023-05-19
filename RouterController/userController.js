@@ -349,15 +349,14 @@ const handleGetAllUser = (req, res) => {
 
 const handleAssignToColleague = async (req, res) => {
   try {
-    const { email } = req.body;
+  
     const id = req.params.id;
     const assignee_email = req.headers.email;
     const token = req.headers.authorization;
-    
+    const email=req.headers.exemail
     if (!token) {
       return res.status(401).send({ error: "Cannot process request without token" });
     }
-
     const tenantId = jwt.verify(token, process.env.secret_key);
     const dbName = `tenant_${tenantId.org_id}`;
     const userDbConfig = {
@@ -373,7 +372,7 @@ const handleAssignToColleague = async (req, res) => {
       "SELECT email, id FROM user WHERE email = ? AND role = 0",
       [email]
     );
-
+    console.log(email)
     if (!result1) {
       return res.status(401).send({ error: "User not found" });
     }
@@ -412,9 +411,10 @@ const handleAssignToColleague = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Cannot process request", error });
-  }
+    res.status(500).send({ error: "Cannot process request", error });
+  }
 };
+
 
 module.exports = {
   addUser,

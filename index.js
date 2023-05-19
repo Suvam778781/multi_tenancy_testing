@@ -11,12 +11,19 @@ const { clientRoute } = require("./Routes/clientRoute");
 const { usersRoute } = require("./Routes/userRoute");
 const { userTodoRoute } = require("./Routes/todoRoute");
 const { sendEmail } = require("./middleware/email&pass.sender");
+app.use(express.json())
 
 app.use(
   cors({
     origin: "*",
   })
 );
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next()
+});
+
 
 app.get("/", (req, res) => {
   res.status(200).send({ result: "Home page" });
