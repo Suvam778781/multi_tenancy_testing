@@ -161,6 +161,7 @@ const handelClientRegister = async (req, res) => {
       // At least one of the fields is missing or invalid
       return res.status(400).json({ error: "Invalid request data" });
     }
+    console.log("register");
 
     const time_stamp = Date.now(); // Get current timestamp
     const random_no = Math.random().toString(36).substring(2, 8);
@@ -274,6 +275,7 @@ const handelClientRegister = async (req, res) => {
 const handelClientLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("login")
 
     // Authenticate user and retrieve user's database information
     const isEmailPresentQ = "SELECT * FROM registration WHERE email = ? ";
@@ -292,7 +294,7 @@ const handelClientLogin = async (req, res) => {
           } else if (!resul) {
             return res
               .status(500)
-              .json({ error: "Plese enter correct password", err });
+              .json({ wrong: "Plese enter correct password", err });
           } else {
             // Generate a JWT token
             let uuid = result[0].tenant_uuid;
