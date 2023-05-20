@@ -460,16 +460,86 @@ const handleGetAllUser = (req, res) => {
   }
 };
 
+// const handleAssignToColleague = async (req, res) => {
+//   try {
+  
+//     const id = req.params.id;
+//     const assignee_email = req.headers.email;
+//     const token = req.headers.authorization;
+//     const email=req.body
+//     if (!token) {
+//       return res.status(401).send({ error: "Cannot process request without token" });
+//     }
+//     const tenantId = jwt.verify(token, process.env.secret_key);
+//     const dbName = `tenant_${tenantId.org_id}`;
+//     const userDbConfig = {
+//       ...dbConfig,
+//       database: dbName,
+//     };
+//     const pool1 = mysql.createPool(userDbConfig);
+//     const connection = await util.promisify(pool1.getConnection).call(pool1);
+
+//     // Checking if entered email is present or not
+    
+//     const [result1] = await util.promisify(connection.query).call(
+//       connection,
+//       "SELECT email, id FROM user WHERE email = ? AND role = 0",
+//       [email]
+//     );
+//     console.log(email)
+//     if (!result1) {
+//       return res.status(401).send({ error: "User not found" });
+//     }
+
+//     // Searching for the ID of the user who created the todo
+//     const [user] = await util.promisify(connection.query).call(
+//       connection,
+//       "SELECT id FROM user WHERE email = ?",
+//       [assignee_email]
+//     );
+
+//     if (!user) {
+//       return res.status(500).send({ error: "Cannot process request" });
+//     }
+
+//     // Checking if the ID is valid or not
+//     const specific_todo = await util.promisify(connection.query).call(
+//       connection,
+//       "SELECT * FROM todo WHERE user_id = ?",
+//       [user.id]
+//     );
+
+//     const check = specific_todo.find(elm => +elm.id === Number(id));
+
+//     if (check) {
+//       // Updating the todo with the assigned user
+//       await util.promisify(connection.query).call(
+//         connection,
+//         "UPDATE todo SET user_id = ?, assignby_user_email = ? WHERE id = ?",
+//         [result1.id, assignee_email, id]
+//       );
+//       connection.release();
+//       res.status(200).send({ message: `Assigned task to ${result1.email}` });
+//     } else {
+//       return res.status(400).send({ error: "Invalid request" });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({ error: "Cannot process request", error });
+//   }
+// };
+//new
 const handleAssignToColleague = async (req, res) => {
   try {
-  
     const id = req.params.id;
     const assignee_email = req.headers.email;
     const token = req.headers.authorization;
-    const email=req.headers.exemail
+    const { email } = req.body;
+
     if (!token) {
       return res.status(401).send({ error: "Cannot process request without token" });
     }
+
     const tenantId = jwt.verify(token, process.env.secret_key);
     const dbName = `tenant_${tenantId.org_id}`;
     const userDbConfig = {
@@ -485,8 +555,9 @@ const handleAssignToColleague = async (req, res) => {
       "SELECT email, id FROM user WHERE email = ? AND role = 0",
       [email]
     );
-    console.log(email)
+
     if (!result1) {
+      connection.release();
       return res.status(401).send({ error: "User not found" });
     }
 
@@ -498,34 +569,35 @@ const handleAssignToColleague = async (req, res) => {
     );
 
     if (!user) {
+      connection.release();
       return res.status(500).send({ error: "Cannot process request" });
     }
 
     // Checking if the ID is valid or not
-    const specific_todo = await util.promisify(connection.query).call(
+    const [specific_todo] = await util.promisify(connection.query).call(
       connection,
-      "SELECT * FROM todo WHERE user_id = ?",
-      [user.id]
+      "SELECT * FROM todo WHERE user_id = ? AND id = ?",
+      [user.id, id]
     );
 
-    const check = specific_todo.find(elm => +elm.id === Number(id));
-
-    if (check) {
+    if (specific_todo) {
       // Updating the todo with the assigned user
       await util.promisify(connection.query).call(
         connection,
         "UPDATE todo SET user_id = ?, assignby_user_email = ? WHERE id = ?",
         [result1.id, assignee_email, id]
       );
+
       connection.release();
       res.status(200).send({ message: `Assigned task to ${result1.email}` });
     } else {
+      connection.release();
       return res.status(400).send({ error: "Invalid request" });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Cannot process request", error });
-  }
+    res.status(500).send({ error: "Cannot process request", error });
+  }
 };
 
 
