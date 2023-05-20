@@ -112,7 +112,7 @@ const handelAddTodo = (req, res) => {
                   }
 
                   pool1.release();
-                  res.status(200).send({ todo: todo[0] });
+                  res.status(200).send({message:"success", todo: todo[0] });
                 });
               });
             }
