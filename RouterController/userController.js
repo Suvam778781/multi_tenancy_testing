@@ -6,6 +6,111 @@ const { decryptPassword } = require("../middleware/password.decrypt");
 const { sendCredentialsEmail, sendEmail } = require("../middleware/email&pass.sender");
 const util = require("util");
 
+// const addUser = async (req, res) => {
+//   try {
+//     const { email, firstname, lastname, password } = req.body;
+//     const token = req.headers.authorization;
+//     if (
+//       !email ||
+//       !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) ||
+//       !password ||
+//       password.length < 6 ||
+//       !firstname ||
+//       firstname.trim().length === 0 ||
+//       !lastname ||
+//       lastname.trim().length === 0
+//     ) {
+//       return res.status(400).json({ error: "Invalid request data" });
+//     }
+//     let username = `${firstname} ${lastname}`;
+
+//     jwt.verify(token, process.env.secret_key, async (err, result) => {
+//       if (err) {
+//         return res.status(401).send({ error: "cannot process req", err });
+//       } else {
+//         let hashpassword = await encryptPassword(password);
+
+//         // Check if the user already exists
+//         const checkUserQuery = "SELECT * FROM user_incomming WHERE email = ?";
+//         pool.query(checkUserQuery, [email], async (err, userResult) => {
+//           if (err) {
+//             return res.status(401).send({ error: "cannot process req", err });
+//           }
+//           if (userResult.length > 0) {
+//             return res.status(409).send({ message: "User already exists" });
+//           }
+
+//           const insertUserQuery =
+//             "INSERT INTO user_incomming (email, firstname, lastname, password, role, org_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+//           res.cookie("useruuid", result.org_id, {
+//             httpOnly: true,
+//           });
+
+//           const insertUserValues = [
+//             email,
+//             firstname,
+//             lastname,
+//             hashpassword,
+//             0,
+//             result.uuid,
+//           ];
+//           pool.query(insertUserQuery, insertUserValues, (err, resul) => {
+//             if (err) {
+//               return res.status(401).send({ error: "cannot process req", err });
+//             }
+
+//             const dbName = `tenant_${result.uuid}`;
+//             const userDbConfig = {
+//               ...dbConfig,
+//               database: dbName,
+//             };
+//             const pool1 = mysql.createPool(userDbConfig);
+//             pool1.getConnection(async(error, connection) => {
+//               if (error) {
+//                 return res
+//                   .status(401)
+//                   .send({ error: "error while connection to db", error });
+//               }
+//              let test=await sendEmail(email, password)
+//  console.log(test);
+//               const insertUserQuery =
+//                 "INSERT INTO user (email, firstname, lastname, password, role, tenant_uuid) VALUES (?, ?, ?, ?, ?, ?)";
+//               let uuid = result.uuid;
+//               const insertUserValues = [
+//                 email,
+//                 firstname,
+//                 lastname,
+//                 hashpassword,
+//                 0,
+//                 uuid,
+//               ];
+//               connection.query(
+//                 insertUserQuery,
+//                 insertUserValues,
+//                 (err, result) => {
+//                   if (err) {
+//                     connection.release();
+//                     return res
+//                       .status(401)
+//                       .send({ error: "cannot process req", err });
+//                   }
+//                   connection.release();
+//                   res.send({"message":"user added successfully"});
+//                 }
+//               );
+//             });
+//           });
+//         });
+//       }
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.send("error");
+//   }
+// };
+
+//new 
 const addUser = async (req, res) => {
   try {
     const { email, firstname, lastname, password } = req.body;
@@ -72,22 +177,23 @@ const addUser = async (req, res) => {
                   .status(401)
                   .send({ error: "error while connection to db", error });
               }
-             let test=await sendEmail(email, password)
- console.log(test);
-              const insertUserQuery =
-                "INSERT INTO user (email, firstname, lastname, password, role, tenant_uuid) VALUES (?, ?, ?, ?, ?, ?)";
-              let uuid = result.uuid;
-              const insertUserValues = [
+              
+              // Get the user data
+              const user = {
                 email,
                 firstname,
                 lastname,
-                hashpassword,
-                0,
-                uuid,
-              ];
+                password: hashpassword,
+                role: 0,
+                tenant_uuid: result.uuid,
+              };
+
+              // Insert user into the user table
+              const insertUserQuery =
+                "INSERT INTO user (email, firstname, lastname, password, role, tenant_uuid) VALUES (?, ?, ?, ?, ?, ?)";
               connection.query(
                 insertUserQuery,
-                insertUserValues,
+                Object.values(user),
                 (err, result) => {
                   if (err) {
                     connection.release();
@@ -96,7 +202,13 @@ const addUser = async (req, res) => {
                       .send({ error: "cannot process req", err });
                   }
                   connection.release();
-                  res.send({"message":"user added successfully"});
+
+                  // Update the user object with the inserted user ID
+                  const {email,firstname,lastname,...other}=user
+                   const id = result.insertId;
+                  
+
+                  res.send({ message: "User added successfully",email,firstname,lastname,id});
                 }
               );
             });
@@ -109,6 +221,7 @@ const addUser = async (req, res) => {
     res.send("error");
   }
 };
+
 
 const getUser = (req, res) => {
   try {

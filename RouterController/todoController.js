@@ -481,7 +481,7 @@ const handelAddUserTodo = async (req, res) => {
 };
 
 
-// To delete todo only admin access
+
 //new
 const handleDeleteUserTodo = (req, res) => {
   try {
@@ -644,6 +644,7 @@ const handleDeleteUserTodo = (req, res) => {
 //     res.send("error");
 //   }
 // };
+//new
 const handleUpdateUserTodo = (req, res) => {
   try {
     const todoId = req.params.id;
