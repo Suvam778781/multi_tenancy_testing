@@ -14,29 +14,32 @@ const util = require("util");
 const handelgetAlluser1 = (req, res) => {
   try {
     const token = req.headers.authorization;
-   
-    const Tenantuuid = jwt.verify(token, process.env.secret_key,(err,result)=>{
-      if(err)return res.status(500).send({err})
-      else{
-const dbName = `tenant_${Tenantuuid.org_id}`;
-    const userDbConfig = {
-      ...dbConfig,
-      database: dbName,
-    };
-    const pool1 = mysql.createPool(userDbConfig);
-    const q="SELECT firstname,lastname, email FROM user WHERE role=0"
-    pool1.query(q,(err,result)=>{
-      if(err)return res.status(300).send(err)
-      else res.status(200).send(result)
-    })
+    jwt.verify(token, process.env.secret_key, (err, Tenantuuid) => {
+      if (err) {
+        return res.status(500).send({ error: err });
+      } else {
+        const dbName = `tenant_${Tenantuuid.org_id}`;
+        const userDbConfig = {
+          ...dbConfig,
+          database: dbName,
+        };
+        console.log(dbName);
+        const pool1 = mysql.createPool(userDbConfig);
+        const q = "SELECT firstname, lastname, email FROM user WHERE role = 0";
+        pool1.query(q, (err, result) => {
+          if (err) {
+            return res.status(300).send(err);
+          } else {
+            res.status(200).send(result);
+          }
+        });
       }
-
     });
-    
   } catch (error) {
     return res.status(500).send({ error });
   }
 };
+
 
 // const addUser = async (req, res) => {
 //   try {
