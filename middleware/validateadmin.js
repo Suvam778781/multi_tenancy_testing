@@ -1,6 +1,7 @@
 const mysql = require("mysql");
 const { pool } = require("../db/db");
 
+
 // Assuming you have a connection pool defined as 'pool'
 const validateAdmin = (req, res, next) => {
  // Assuming the email is sent in the 'email' header
