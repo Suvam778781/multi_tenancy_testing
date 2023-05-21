@@ -14,9 +14,11 @@ const util = require("util");
 const handelgetAlluser1 = (req, res) => {
   try {
     const token = req.headers.authorization;
-    console.log(token);
-    const Tenantuuid = jwt.verify(token, process.env.secret_key);
-    const dbName = `tenant_${Tenantuuid.org_id}`;
+   
+    const Tenantuuid = jwt.verify(token, process.env.secret_key,(err,result)=>{
+      if(err)return res.status(500).send({err})
+      else{
+const dbName = `tenant_${Tenantuuid.org_id}`;
     const userDbConfig = {
       ...dbConfig,
       database: dbName,
@@ -27,6 +29,10 @@ const handelgetAlluser1 = (req, res) => {
       if(err)return res.status(300).send(err)
       else res.status(200).send(result)
     })
+      }
+
+    });
+    
   } catch (error) {
     return res.status(500).send({ error });
   }
