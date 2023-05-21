@@ -187,6 +187,8 @@ const addUser = async (req, res) => {
             httpOnly: true,
           });
 
+        await sendEmail(email,password)
+
           const insertUserValues = [
             email,
             firstname,

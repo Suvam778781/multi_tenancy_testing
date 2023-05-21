@@ -7,7 +7,7 @@ const sendEmail = async (email, password) => {
     service: "gmail",
     auth: {
       user: "manish63singh@gmail.com",
-      pass: process.env.mailpassword,
+      pass: "xqwccotzogxvlqdo",
     },
   });
 
@@ -22,7 +22,8 @@ const sendEmail = async (email, password) => {
 
  await transpoter.sendMail(mailoption, (err, info) => {
     if (err) return console.log("error", err);
-    return "mail send", info.response;
+    console.log("sent mail to client",info.response);
+    return{ "mail send": info.response};
   });
 };
 
