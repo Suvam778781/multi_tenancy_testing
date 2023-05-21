@@ -641,7 +641,7 @@ const handleAssignToColleague = async (req, res) => {
       return res.status(400).send({ error: "Invalid request" });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error)
     res.status(500).send({ error: "Cannot process request", error });
   }
 };
