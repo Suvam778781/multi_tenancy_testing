@@ -306,54 +306,147 @@ const getUser = (req, res) => {
   }
 };
 
+// const updateUser = (req, res) => {
+//   try {
+//     const { email, firstname, lastname, password } = req.body;
+//     const userId = req.params.id;
+//     const token = req.headers.authorization;
+//     const user_email = req.headers.email;
+
+//     jwt.verify(token, process.env.secret_key, async (err, result) => {
+//       if (err)
+//         return res.status(401).send({ error: "cannot process req", err });
+
+//       const dbName = `tenant_${result.uuid}`;
+//       const userDbConfig = {
+//         ...dbConfig,
+//         database: dbName,
+//       };
+//       const pool1 = mysql.createPool(userDbConfig);
+
+//       pool1.getConnection(async (error, connection) => {
+//         if (error) {
+//           return res
+//             .status(401)
+//             .send({ error: "error while connection to db", error });
+//         }
+
+//         let hashpassword = await encryptPassword(password);
+
+//         const updateUserQuery =
+//           "UPDATE user SET firstname = ?, lastname = ?, password = ? WHERE id = ?";
+//         const updateUserValues = [firstname, lastname, hashpassword, userId];
+
+//         connection.query(updateUserQuery, updateUserValues, (err, result) => {
+//           connection.release();
+//           if (err) {
+//             return res.status(401).send({ error: "cannot process req", err });
+//           }
+//           if (result.affectedRows === 0) {
+//             return res.status(404).send({ message: "User not found" });
+//           } else {
+//             res.send({ message: "User updated successfully" });
+//           }
+//         });
+//       });
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.send("error");
+//   }
+// };
+
+//new function for updateing code from admin
+
 const updateUser = (req, res) => {
   try {
     const { email, firstname, lastname, password } = req.body;
     const userId = req.params.id;
     const token = req.headers.authorization;
     const user_email = req.headers.email;
-
+    console.log(password, firstname, lastname);
     jwt.verify(token, process.env.secret_key, async (err, result) => {
       if (err)
         return res.status(401).send({ error: "cannot process req", err });
 
-      const dbName = `tenant_${result.uuid}`;
-      const userDbConfig = {
+      const commonDbConfig = {
         ...dbConfig,
-        database: dbName,
+        database: "common_db", // Update with the common_db name
       };
-      const pool1 = mysql.createPool(userDbConfig);
+      const tenantDbConfig = {
+        ...dbConfig,
+        database: `tenant_${result.uuid}`,
+      };
+      const commonPool = mysql.createPool(commonDbConfig);
+      const tenantPool = mysql.createPool(tenantDbConfig);
 
-      pool1.getConnection(async (error, connection) => {
-        if (error) {
+      commonPool.getConnection(async (commonError, commonConnection) => {
+        if (commonError) {
           return res
             .status(401)
-            .send({ error: "error while connection to db", error });
+            .send({ error: "error while connecting to common_db", commonError });
         }
 
         let hashpassword = await encryptPassword(password);
+        console.log(hashpassword);
 
-        const updateUserQuery =
-          "UPDATE user SET firstname = ?, lastname = ?, password = ? WHERE id = ?";
-        const updateUserValues = [firstname, lastname, hashpassword, userId];
+        const updateCommonQuery =
+          "UPDATE user_incomming SET firstname = ?, lastname = ?, password = ?  WHERE email = ?";
+        const updateCommonValues = [firstname, lastname, hashpassword, email];
 
-        connection.query(updateUserQuery, updateUserValues, (err, result) => {
-          connection.release();
-          if (err) {
-            return res.status(401).send({ error: "cannot process req", err });
+        commonConnection.query(updateCommonQuery, updateCommonValues, (updateCommonError, updateCommonResult) => {
+          if (updateCommonError) {
+            commonConnection.release();
+            return res.status(401).send({ error: "cannot process req", updateCommonError });
           }
-          if (result.affectedRows === 0) {
-            return res.status(404).send({ message: "User not found" });
-          } else {
-            res.send({ message: "User updated successfully" });
-          }
+
+          tenantPool.getConnection(async (tenantError, tenantConnection) => {
+            if (tenantError) {
+              commonConnection.release();
+              return res
+                .status(401)
+                .send({ error: "error while connecting to tenant_db", tenantError });
+            }
+
+            const updateTenantQuery =
+              "UPDATE user SET firstname = ?, lastname = ?, password = ?  WHERE id = ?";
+            const updateTenantValues = [firstname, lastname, hashpassword, userId];
+
+            tenantConnection.query(updateTenantQuery, updateTenantValues, (updateTenantError, updateTenantResult) => {
+              commonConnection.release();
+              tenantConnection.release();
+
+              if (updateTenantError) {
+                return res.status(401).send({ error: "cannot process req", updateTenantError });
+              }
+              if (updateTenantResult.affectedRows === 0) {
+                return res.status(404).send({ message: "User not found in tenant_db" });
+              } else {
+                // Retrieve the updated user from the database
+                const getUserQuery = "SELECT * FROM user WHERE id = ?";
+                const getUserValues = [userId];
+
+                tenantConnection.query(getUserQuery, getUserValues, (getUserError, updatedUser) => {
+                  if (getUserError) {
+                    return res.status(401).send({ error: "cannot process req", getUserError });
+                  }
+                  if (updatedUser.length === 0) {
+                    return res.status(404).send({ message: "User not found in tenant_db" });
+                  }
+
+                  const updatedUserResult = updatedUser[0];
+                  return res.send({ message: "User updated successfully", user: updatedUserResult });
+                });
+              }
+            });
+          });
         });
       });
     });
   } catch (error) {
     console.log(error);
     res.send("error");
-  }
+  }
 };
 
 const deleteUser = (req, res) => {
