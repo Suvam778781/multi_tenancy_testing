@@ -11,7 +11,7 @@ const util = require("util");
 
 //getting all user to user info;
 
-const handelgetAlluser1 = (req, res) => {
+const  handelgetAllUserToUSer = (req, res) => {
   try {
     const token = req.headers.authorization;
     jwt.verify(token, process.env.secret_key, (err, Tenantuuid) => {
@@ -656,5 +656,5 @@ module.exports = {
   userLogin,
   handleGetAllUser,
   handleAssignToColleague,
-  handelgetAlluser1,
+  handelgetAllUserToUSer,
 };
