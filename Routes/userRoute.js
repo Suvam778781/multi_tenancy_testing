@@ -8,7 +8,8 @@ const {
   handleGetAllUser,
  
   handleAssignToColleague,
-  handelgetAlluser1,
+ 
+  handelgetAllUserToUSer,
 } = require("../RouterController/userController");
 const { validateAdmin } = require("../middleware/validateadmin");
 
