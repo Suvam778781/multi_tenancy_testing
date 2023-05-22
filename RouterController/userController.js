@@ -430,7 +430,7 @@ const userLogin = async (req, res) => {
       // Compare the provided password with the hashed password stored in the database
       const passwordMatch = await decryptPassword(password, user.password);
       if (!passwordMatch) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ wrong: "Invalid email or password" });
       }
       // Generate a token using the user ID
 
