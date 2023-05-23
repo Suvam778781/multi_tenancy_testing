@@ -15,7 +15,7 @@ const sendEmail = async (email, password) => {
     from: "manish63singh@gmail.com",
     to: email,
     subject: "credentials for logging in  TODO_APP",
-    text: `credential for username ${email} on todo app with password as ${password}` 
+    text: `credential for username ${email} on todo app with password as ${password} ` 
   }; 
 
  

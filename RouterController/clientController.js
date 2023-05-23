@@ -164,7 +164,7 @@ const handelClientRegister = async (req, res) => {
     console.log("register");
 
     const time_stamp = Date.now(); // Get current timestamp
-    const random_no = Math.random().toString(36).substring(2, 8);
+    const random_no = Math.random().toString(36).substring(2,8);
     // creating a random database name for client;
     const tenant_uuid = `${time_stamp}_${random_no}`;
     console.log(tenant_uuid);
