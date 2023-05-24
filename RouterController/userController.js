@@ -8,6 +8,7 @@ const {
   sendEmail,
 } = require("../middleware/email&pass.sender");
 const util = require("util");
+const { generateRandomPassword } = require("../middleware/generateRandomPassword");
 
 //getting all user to user info;
 
@@ -168,8 +169,9 @@ const addUser = async (req, res) => {
       if (err) {
         return res.status(401).send({ error: "cannot process req", err });
       } else {
-        let hashpassword = await encryptPassword(password);
-
+        const random_password=await generateRandomPassword(10)
+        let hashpassword = await encryptPassword(random_password);
+        console.log(random_password)
         // Check if the user already exists
         const checkUserQuery = "SELECT * FROM user_incomming WHERE email = ?";
         pool.query(checkUserQuery, [email], async (err, userResult) => {
@@ -187,7 +189,7 @@ const addUser = async (req, res) => {
             httpOnly: true,
           });
 
-        await sendEmail(email,password)
+        await sendEmail(email,random_password)
 
           const insertUserValues = [
             email,

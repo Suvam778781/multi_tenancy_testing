@@ -293,7 +293,7 @@ const handelClientLogin = async (req, res) => {
             return res.status(500).json({ error: "Login again.", err });
           } else if (!resul) {
             return res
-              .status(401)
+              .status(500)
               .json({ wrong: "Plese enter correct password", err });
           } else {
             // Generate a JWT token
