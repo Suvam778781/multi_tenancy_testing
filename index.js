@@ -11,6 +11,7 @@ const { clientRoute } = require("./Routes/clientRoute");
 const { usersRoute } = require("./Routes/userRoute");
 const { userTodoRoute } = require("./Routes/todoRoute");
 const { sendEmail } = require("./middleware/email&pass.sender");
+const { loginRouter } = require("./Routes/loginRoutes");
 app.use(express.json())
 
 
@@ -31,6 +32,7 @@ app.use(cookieParser());
 app.use("/client", clientRoute);
 app.use("/user", usersRoute);
 app.use("/todo", userTodoRoute);
+app.use("/bothlogin",loginRouter)
 
 
 
