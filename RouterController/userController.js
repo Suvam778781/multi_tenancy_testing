@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const io = require('socket.io')()
 const { dbConfig, connection, pool } = require("../db/db");
 const mysql = require("mysql");
 const { encryptPassword } = require("../middleware/password.encrypt");
@@ -12,13 +13,16 @@ const { generateRandomPassword } = require("../middleware/generateRandomPassword
 
 //getting all user to user info;
 
-const  handelgetAllUserToUSer = (req, res) => {
+const  handelGetAlluserSuggestion = (req, res) => {
   try {
+   
     const token = req.headers.authorization;
+    
     jwt.verify(token, process.env.secret_key, (err, Tenantuuid) => {
       if (err) {
         return res.status(500).send({ error: err });
       } else {
+        //console.log(Tenantuuid,"uuid");
         const dbName = `tenant_${Tenantuuid.org_id}`;
         const userDbConfig = {
           ...dbConfig,
@@ -721,6 +725,8 @@ const handleAssignToColleague = async (req, res) => {
         id,
       ]);
 
+    
+
     if (specific_todo) {
       // Updating the todo with the assigned user
       await util
@@ -732,6 +738,11 @@ const handleAssignToColleague = async (req, res) => {
         );
 
       connection.release();
+      const userSocketId =email;
+      if (userSocketId) {
+        io.to(userSocketId).emit('todoAssigned', assignedTodo);
+      }
+      
       res.status(200).send({ message: `Assigned task to ${result1.email}` });
     } else {
       connection.release();
@@ -751,5 +762,5 @@ module.exports = {
   userLogin,
   handleGetAllUser,
   handleAssignToColleague,
-  handelgetAllUserToUSer,
+  handelGetAlluserSuggestion,
 };
