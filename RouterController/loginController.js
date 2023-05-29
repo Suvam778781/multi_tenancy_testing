@@ -10,6 +10,7 @@ const { setAccessTokenCookie } = require("../middleware/setAccesTokenCoockie");
 
 
 const loginUser = async (req, res) => {
+  console.log("login");
     try {
       const { email, password } = req.body;
   
@@ -38,6 +39,7 @@ const loginUser = async (req, res) => {
       if (userResults.length > 0) {
         const user = userResults[0];
         const passwordMatch = await decryptPassword(password, user.password);
+        console.log(passwordMatch)
         if (passwordMatch) {
           const token = generateToken({ org_id: user.org_id });
           setAccessTokenCookie(res, token);
